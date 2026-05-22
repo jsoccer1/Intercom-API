@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intercom — 60-day conversation review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #f7f4ec; --ink: #1a1814; --ink-soft: #57534a; --ink-mute: #8c877c;
+    --rule: #d9d3c2; --rule-soft: #ebe6d6; --paper: #ffffff;
+    --accent: #b6432b; --teal: #2d6a5f; --amber: #b58116;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: 'Inter Tight', sans-serif; font-weight: 400; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1080px; margin: 0 auto; padding: 56px 40px 80px; }
+  .masthead { border-top: 4px double var(--ink); border-bottom: 1px solid var(--ink); padding: 18px 0 14px; display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .masthead .kicker { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); }
+  .masthead .date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-soft); }
+  h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 56px; line-height: 1.02; letter-spacing: -0.02em; margin: 28px 0 14px; max-width: 820px; }
+  h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+  .lede { font-family: 'Fraunces', serif; font-size: 19px; line-height: 1.55; color: var(--ink-soft); max-width: 720px; margin-bottom: 8px; }
+  .meta-strip { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 12px 0; margin: 32px 0 48px; display: flex; gap: 36px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-soft); letter-spacing: 0.04em; }
+  .meta-strip span strong { color: var(--ink); font-weight: 500; }
+  .section-head { display: flex; align-items: baseline; gap: 16px; margin: 56px 0 24px; }
+  .section-head .num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); letter-spacing: 0.15em; }
+  .section-head h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 30px; letter-spacing: -0.01em; }
+  .section-head .rule { flex: 1; border-bottom: 1px solid var(--rule); margin-bottom: 8px; }
+  .headline-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .headline-cell { padding: 24px 22px 26px; border-right: 1px solid var(--rule); position: relative; }
+  .headline-cell:last-child { border-right: none; }
+  .headline-cell .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 14px; }
+  .headline-cell .value { font-family: 'Fraunces', serif; font-weight: 500; font-size: 42px; line-height: 1; letter-spacing: -0.02em; }
+  .headline-cell .sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-soft); margin-top: 8px; }
+  .note { background: var(--paper); border: 1px solid var(--rule); border-left: 3px solid var(--amber); padding: 16px 20px; margin: 32px 0; font-size: 14px; color: var(--ink-soft); line-height: 1.6; }
+  .note strong { color: var(--ink); font-weight: 500; }
+  .chart-wrap { background: var(--paper); border: 1px solid var(--rule); padding: 28px; margin-top: 24px; }
+  .chart-wrap .chart-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+  .chart-wrap .chart-sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 20px; }
+  .chart-box { position: relative; width: 100%; height: 540px; }
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--rule); }
+  .cat-card { padding: 22px 24px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); background: var(--paper); display: flex; flex-direction: column; }
+  .cat-card:nth-child(2n) { border-right: none; }
+  .cat-card .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .cat-card h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 19px; letter-spacing: -0.01em; }
+  .cat-card .count { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 500; }
+  .cat-card .desc { font-size: 14px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 14px; flex: 1; }
+  .cat-card .stats { display: flex; gap: 18px; padding-top: 12px; border-top: 1px dashed var(--rule); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.06em; }
+  .cat-card .stats div span { display: block; font-family: 'Fraunces', serif; font-size: 18px; color: var(--ink); margin-top: 2px; letter-spacing: -0.01em; text-transform: none; }
+  footer { margin-top: 64px; padding-top: 24px; border-top: 4px double var(--ink); display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-mute); letter-spacing: 0.06em; }
+  @media (max-width: 720px) {
+    .container { padding: 36px 22px 60px; } h1 { font-size: 38px; }
+    .headline-grid { grid-template-columns: repeat(2, 1fr); }
+    .headline-cell:nth-child(2) { border-right: none; }
+    .headline-cell:nth-child(1), .headline-cell:nth-child(2) { border-bottom: 1px solid var(--rule); }
+    .cat-grid { grid-template-columns: 1fr; }
+    .cat-card { border-right: none !important; }
+    .meta-strip { flex-direction: column; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="masthead">
+    <div class="kicker">Support Operations · Intercom Review</div>
+    <div class="date">60-day window · Mar 23 – May 22, 2026</div>
+  </div>
+  <h1><em>2,138 conversations</em> through Intercom over the last 60 days.</h1>
+  <p class="lede">Volume, response time, and the shape of what customers actually wrote in about — categorized, counted, and timed against the full population. Empty chat-widget opens are excluded from the analysis throughout.</p>
+  <div class="meta-strip">
+    <span>Window: <strong>Mar 23 – May 22, 2026</strong></span>
+    <span>Source: <strong>Intercom API</strong></span>
+    <span>Total conversations: <strong>2,138</strong></span>
+    <span>Excluded (empty opens): <strong>~791</strong></span>
+    <span>Real conversations: <strong>~1,347</strong></span>
+  </div>
+
+  <div class="section-head"><span class="num">01 ·</span><h2>Headline numbers</h2><span class="rule"></span></div>
+  <div class="headline-grid">
+    <div class="headline-cell"><div class="label">Real conversations</div><div class="value">1,347</div><div class="sub">Excludes ~791 empty widget opens</div></div>
+    <div class="headline-cell"><div class="label">Closed in &lt; 2 hr</div><div class="value">674</div><div class="sub">31.5% of all conversations</div></div>
+    <div class="headline-cell"><div class="label">Closed in ≥ 2 hr</div><div class="value">747</div><div class="sub">34.9% of all conversations</div></div>
+    <div class="headline-cell"><div class="label">Avg close time (≥ 2 hr)</div><div class="value">37 hr</div><div class="sub">~1.6 days · median 17 hr</div></div>
+  </div>
+  <div class="note">
+    <strong>About these numbers.</strong> The 2,138 total, the &lt;2 hr count (674), and the ≥2 hr count (747) are exact figures from the Intercom API for the 60-day window of Mar 23 – May 22, 2026. The analyzed sample is 2,136 of those 2,138 conversations (99.9% coverage), so per-category counts and close times are near-exact rather than projected. Empty chat-widget opens — people who clicked the chat bubble but never sent a message — made up 37% of all records and have been excluded from the category analysis since they aren't real support requests. The remaining 717 conversations are still open (never reached a first close).
+  </div>
+
+  <div class="section-head"><span class="num">02 ·</span><h2>Conversations by category</h2><span class="rule"></span></div>
+  <div class="chart-wrap">
+    <div class="chart-title">Real conversations by category</div>
+    <div class="chart-sub">Sorted largest to smallest. Empty/greeting-only conversations excluded.</div>
+    <div class="chart-box"><canvas id="catChart" role="img" aria-label="Horizontal bar chart of conversation categories"></canvas></div>
+  </div>
+
+  <div class="section-head"><span class="num">03 ·</span><h2>The categories, defined</h2><span class="rule"></span></div>
+  <p class="lede" style="font-size: 16px; margin-bottom: 24px;">Each card shows what falls into the category, how many conversations belong to it, and how long they typically stay open before first close.</p>
+  <div class="cat-grid" id="catGrid"></div>
+
+  <footer><span>Liine · Intercom Operations Review</span><span>Generated May 22, 2026</span></footer>
+</div>
+
+<script>
+const CATEGORIES = [
+  { key: 'call_review', label: 'Call review', desc: 'Reviewing, re-dispositioning, or fixing call records — including dropped calls, mistagged calls, IVR issues, and call detail link requests.', count: 147, avg: 9.5, med: 2.8 },
+  { key: 'tracking_number', label: 'Tracking number', desc: 'Requests to create, port, swap, cancel, or check Liine tracking phone numbers — including new number pools and DTRN/BCRN setup.', count: 138, avg: 29.6, med: 14.8 },
+  { key: 'spam', label: 'Spam', desc: 'Marketing newsletters (mostly Intercom "[hello]" broadcasts), cold sales pitches, partnership outreach, and SEO/lead-gen vendor emails.', count: 129, avg: 1.7, med: 0.0 },
+  { key: 'user_management', label: 'User management', desc: 'Adding, removing, activating, or changing permissions for Liine users — including login/2FA help and integration-access requests.', count: 105, avg: 13.8, med: 1.4 },
+  { key: 'marketing_channels', label: 'Marketing channels & UTMs', desc: 'Creating or editing marketing channels, UTM parameters, treatment types, ad-platform integrations (Google, Meta, TikTok, Bing), webhooks, and pixels.', count: 103, avg: 36.1, med: 17.7 },
+  { key: 'dashboard_question', label: 'Dashboard questions', desc: 'How-to questions about the Liine dashboard — show-rate calculations, where to find reports, call logs, analytics, and metric definitions.', count: 80, avg: 13.1, med: 1.9 },
+  { key: 'lead_data_correction', label: 'Lead data correction', desc: 'Fixing lead records — marking leads booked, name spelling, lead routing/assignment, missing leads, interaction-log questions.', count: 60, avg: 19.0, med: 6.8 },
+  { key: 'form', label: 'Forms', desc: 'Creating, editing, or troubleshooting web forms, intake forms, PPC forms, jotforms, and form-capture or scraping issues.', count: 59, avg: 39.8, med: 16.7 },
+  { key: 'report_distribution', label: 'Report distribution', desc: 'Internal Liine report emails ("[Report Distribution]"). Not customer requests; included here for completeness.', count: 47, avg: 5.0, med: 0.1 },
+  { key: 'integration_other', label: 'Integration (other)', desc: "General API/integration setup and confirmation requests that don't fall into a more specific bucket.", count: 30, avg: 50.0, med: 13.7 },
+  { key: 'online_booking', label: 'Online booking', desc: 'Online booking integrations, OBS links, scheduling-system connections (e.g. Sikka), and booking discrepancies.', count: 29, avg: 26.4, med: 7.2 },
+  { key: 'location_setup', label: 'Location setup', desc: 'Onboarding new practice locations or website launches — adding clinics, expansions, vendor handoffs.', count: 28, avg: 69.0, med: 23.5 },
+  { key: 'messaging_texting', label: 'Messaging & texting', desc: 'SMS, text follow-ups, automated texts, 2-way texting setup, and nurse-line scripts.', count: 15, avg: 38.9, med: 10.7 },
+  { key: 'hours_schedule', label: 'Hours & schedule', desc: 'Updating business hours, holiday hours, after-hours behavior, and auto-call windows.', count: 5, avg: 44.4, med: 24.0 },
+  { key: 'recording_compliance', label: 'Recording compliance', desc: 'Call recording disclosure updates and recording-compliance changes.', count: 2, avg: 23.8, med: 47.3 },
+  { key: 'feature_request', label: 'Feature request', desc: 'Product feature requests or questions about call policy and roadmap.', count: 2, avg: 2.7, med: 5.0 },
+  { key: 'agent_handoff', label: 'Agent handoff', desc: '"Connect with human" requests through the chat widget.', count: 1, avg: 0.2, med: 0.2 },
+  { key: 'other', label: 'Other', desc: "Conversations that didn't match any keyword pattern — true miscellaneous (e.g. one-off vendor coordination, ad-hoc questions).", count: 366, avg: 22.1, med: 4.6 },
+];
+const grid = document.getElementById('catGrid');
+CATEGORIES.forEach(c => {
+  const card = document.createElement('div');
+  card.className = 'cat-card';
+  card.innerHTML = `<div class="head"><h3>${c.label}</h3><span class="count">${c.count.toLocaleString()}</span></div><p class="desc">${c.desc}</p><div class="stats"><div>Avg open<span>${c.avg.toFixed(1)} hr</span></div><div>Median<span>${c.med.toFixed(1)} hr</span></div></div>`;
+  grid.appendChild(card);
+});
+const chartData = [...CATEGORIES].sort((a,b) => b.count - a.count);
+const colorFor = (key) => {
+  if (key === 'spam') return '#b6432b';
+  if (key === 'other') return '#8c877c';
+  if (['tracking_number','user_management','marketing_channels','form','call_review','online_booking'].includes(key)) return '#2d6a5f';
+  return '#b58116';
+};
+new Chart(document.getElementById('catChart'), {
+  type: 'bar',
+  data: { labels: chartData.map(c => c.label), datasets: [{ data: chartData.map(c => c.count), backgroundColor: chartData.map(c => colorFor(c.key)), borderWidth: 0 }] },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { beginAtZero: true, grid: { color: '#ebe6d6' }, ticks: { font: { family: 'JetBrains Mono', size: 11 }, color: '#8c877c', callback: v => v.toLocaleString() } },
+      y: { grid: { display: false }, ticks: { font: { family: 'Inter Tight', size: 12 }, color: '#1a1814', autoSkip: false } }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1a1814',
+        titleFont: { family: 'Inter Tight', weight: '500' },
+        bodyFont: { family: 'JetBrains Mono', size: 12 },
+        callbacks: { label: ctx => ctx.parsed.x.toLocaleString() + ' conversations  ·  ' + (ctx.parsed.x/2138*100).toFixed(1) + '%' }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
